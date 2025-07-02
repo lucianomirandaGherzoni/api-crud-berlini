@@ -46,8 +46,8 @@ async function agregarUnProducto(req, res) { // Mantengo el nombre original de t
     try {
         const nuevoProducto = req.body;
         // Validación de datos de entrada
-        if (!nuevoProducto.nombre || !nuevoProducto.marca || typeof nuevoProducto.precio === 'undefined' || typeof nuevoProducto.stock === 'undefined') {
-            return res.status(400).json({ mensaje: "Faltan datos obligatorios para el producto (nombre, marca, precio, stock)." });
+        if (!nuevoProducto.nombre || !nuevoProducto.detalle || typeof nuevoProducto.precio === 'undefined' || typeof nuevoProducto.stock === 'undefined') {
+            return res.status(400).json({ mensaje: "Faltan datos obligatorios para el producto (nombre, detalle, precio, stock)." });
         }
         if (isNaN(nuevoProducto.precio) || isNaN(nuevoProducto.stock)) {
             return res.status(400).json({ mensaje: "Precio y stock deben ser valores numéricos." });
@@ -73,8 +73,8 @@ async function modificarProducto(req, res) {
         }
 
         // Validación de datos de entrada para la modificación
-        if (!productoModificado.nombre || !productoModificado.marca || typeof productoModificado.precio === 'undefined' || typeof productoModificado.stock === 'undefined') {
-            return res.status(400).json({ mensaje: "Faltan datos obligatorios para modificar el producto (nombre, marca, precio, stock)." });
+        if (!productoModificado.nombre || !productoModificado.detalle || typeof productoModificado.precio === 'undefined' || typeof productoModificado.stock === 'undefined') {
+            return res.status(400).json({ mensaje: "Faltan datos obligatorios para modificar el producto (nombre, detalle, precio, stock)." });
         }
         if (isNaN(productoModificado.precio) || isNaN(productoModificado.stock)) {
             return res.status(400).json({ mensaje: "Precio y stock deben ser valores numéricos." });

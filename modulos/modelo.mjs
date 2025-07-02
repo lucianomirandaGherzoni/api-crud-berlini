@@ -6,7 +6,7 @@ async function obtenerProductos() {
     try {
         const { data: productos, error } = await supabase
             .from('productos') // 'productos' es el nombre de tu tabla en Supabase
-            .select('id, nombre, marca, precio, stock') // Selecciona las columnas que necesitas
+            .select('id, nombre, detalle, precio, stock') // Selecciona las columnas que necesitas
             .order('id', { ascending: true }); // Ordena por ID ascendente
 
         if (error) {
@@ -24,7 +24,7 @@ async function obtenerUnProducto(id) {
     try {
         const { data: producto, error } = await supabase
             .from('productos') // 'productos' es el nombre de tu tabla
-            .select('id, nombre, marca, precio, stock')
+            .select('id, nombre, detalle, precio, stock')
             .eq('id', id) // Filtra por 'id' igual al valor proporcionado
             .single(); // Espera un único resultado
 
@@ -46,7 +46,7 @@ async function obtenerUnProducto(id) {
 // Función para agregar un producto
 async function agregarProducto(nuevoProducto) {
     try {
-        const { nombre, marca, precio, stock } = nuevoProducto;
+        const { nombre, detalle, precio, stock } = nuevoProducto;
 
         // El método .insert() recibe un objeto y devuelve el objeto insertado
         // .select() es necesario para obtener los datos insertados, incluyendo el ID generado por Supabase.
@@ -55,7 +55,7 @@ async function agregarProducto(nuevoProducto) {
             .insert([
                 {
                     nombre: nombre,
-                    marca: marca,
+                    detalle: detalle,
                     precio: precio,
                     stock: stock
                 }
@@ -78,7 +78,7 @@ async function agregarProducto(nuevoProducto) {
 // Función para modificar un producto
 async function modificarProducto(id, productoModificar) {
     try {
-        const { nombre, marca, precio, stock } = productoModificar;
+        const { nombre, detalle, precio, stock } = productoModificar;
 
         // El método .update() recibe un objeto con los campos a actualizar
         // y .eq() se usa para especificar la condición WHERE
@@ -86,7 +86,7 @@ async function modificarProducto(id, productoModificar) {
             .from('productos') // Nombre de tu tabla en Supabase
             .update({
                 nombre: nombre,
-                marca: marca,
+                detalle: detalle,
                 precio: precio,
                 stock: stock
             })
