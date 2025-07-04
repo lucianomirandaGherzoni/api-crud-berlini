@@ -1,20 +1,17 @@
-// modulos/data/controlador.mjs
+// modulos/controlador.mjs
 
-import modelo from './modelo.mjs'; // Importa el modelo de productos (que ahora interactúa con PostgreSQL)
+import modelo from './modelo.mjs'; // Importa el modelo de productos
 
 // Función para manejar la solicitud de obtener todos los productos
 async function obtenerProductos(req, res) {
     try {
         const productos = await modelo.obtenerProductos();
-        // Si no hay productos, el modelo devuelve un array vacío, lo manejamos con un 200 OK y un mensaje informativo.
-        // No hay necesidad de un 404 aquí, ya que una colección vacía no es un error de "no encontrado".
         if (productos.length === 0) {
             return res.status(200).json({ mensaje: "No hay productos en la base de datos." });
         }
         res.status(200).json(productos);
     } catch (error) {
         console.error("Error en controlador.obtenerProductos:", error);
-        // Envía un 500 con un mensaje de error y el detalle (solo en desarrollo)
         res.status(500).json({ mensaje: "Error interno del servidor al obtener productos.", detalle: error.message });
     }
 }
@@ -30,9 +27,8 @@ async function obtenerUnProducto(req, res) {
     try {
         const producto = await modelo.obtenerUnProducto(productoId);
         if (producto) {
-            res.status(200).json(producto); // Usa res.json() para enviar el objeto JSON
+            res.status(200).json(producto);
         } else {
-            // Si el modelo devuelve null, significa que el producto no fue encontrado
             res.status(404).json({ mensaje: 'Producto no encontrado.' });
         }
     } catch (error) {
@@ -42,7 +38,7 @@ async function obtenerUnProducto(req, res) {
 }
 
 // Función para agregar un producto
-async function agregarUnProducto(req, res) { // Mantengo el nombre original de tu función
+async function agregarUnProducto(req, res) {
     try {
         const nuevoProducto = req.body;
         // Validación de datos de entrada
@@ -53,8 +49,9 @@ async function agregarUnProducto(req, res) { // Mantengo el nombre original de t
             return res.status(400).json({ mensaje: "Precio y stock deben ser valores numéricos." });
         }
 
-        const productoCreado = await modelo.agregarProducto(nuevoProducto); // Llama a la función del modelo
-        // Envía una respuesta 201 Created para indicar que el recurso se creó con éxito
+        // El campo imagen_url ahora se espera directamente en el body
+        // Si no se envía, será undefined o null, lo cual es manejado por el modelo (campo NULLable)
+        const productoCreado = await modelo.agregarProducto(nuevoProducto);
         res.status(201).json({ mensaje: "Producto agregado con éxito", producto: productoCreado });
     } catch (error) {
         console.error("Error en controlador.agregarUnProducto:", error);
@@ -80,18 +77,16 @@ async function modificarProducto(req, res) {
             return res.status(400).json({ mensaje: "Precio y stock deben ser valores numéricos." });
         }
 
-        // Primero, verificar si el producto existe antes de intentar modificar
         const productoExistente = await modelo.obtenerUnProducto(productoId);
         if (!productoExistente) {
             return res.status(404).json({ mensaje: "Producto a modificar no encontrado." });
         }
 
+        // El campo imagen_url ahora se espera directamente en el body
         const modificado = await modelo.modificarProducto(productoId, productoModificado);
         if (modificado) {
-            // Si el modelo retorna true (indicando éxito), envía un mensaje claro
             res.status(200).json({ mensaje: `Producto con ID ${productoId} modificado con éxito.` });
         } else {
-            // Este else es más un fallback, ya que si productoExistente pasó, debería modificarse.
             res.status(500).json({ mensaje: 'No se pudo modificar el producto por una razón desconocida.' });
         }
 
@@ -110,12 +105,16 @@ async function eliminarProducto(req, res) {
     }
 
     try {
+        // Antes de eliminar el producto de la BD, obtener su URL de imagen para eliminarla del storage
+        const productoAEliminar = await modelo.obtenerUnProducto(productoId);
+        if (productoAEliminar && productoAEliminar.imagen_url) {
+            await modelo.eliminarImagenStorage(productoAEliminar.imagen_url);
+        }
+
         const eliminado = await modelo.eliminarProducto(productoId);
         if (eliminado) {
-            // 200 OK con un mensaje o 204 No Content si no se devuelve nada.
             res.status(200).json({ mensaje: `Producto con ID ${productoId} eliminado con éxito.` });
         } else {
-            // Si el modelo retorna false, el producto no fue encontrado para eliminar
             res.status(404).json({ mensaje: 'Producto no encontrado para eliminar.' });
         }
     } catch (error) {
@@ -124,11 +123,49 @@ async function eliminarProducto(req, res) {
     }
 }
 
+// --- Nuevas funciones del controlador para manejo de imágenes ---
+
+async function subirImagen(req, res) {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ mensaje: 'No se ha proporcionado ningún archivo de imagen.' });
+        }
+
+        // req.file.buffer contiene el archivo en memoria
+        // req.file.originalname contiene el nombre original del archivo
+        const imageUrl = await modelo.subirImagenStorage(req.file.buffer, req.file); // Pasar el objeto file completo para mimetype
+
+        res.status(200).json({ mensaje: 'Imagen subida con éxito', imageUrl: imageUrl });
+    } catch (error) {
+        console.error("Error en controlador.subirImagen:", error);
+        res.status(500).json({ mensaje: 'Error interno del servidor al subir la imagen.', detalle: error.message });
+    }
+}
+
+async function eliminarImagen(req, res) {
+    try {
+        const { imageUrl } = req.body;
+
+        if (!imageUrl) {
+            return res.status(400).json({ mensaje: 'No se ha proporcionado la URL de la imagen a eliminar.' });
+        }
+
+        await modelo.eliminarImagenStorage(imageUrl);
+        res.status(200).json({ mensaje: 'Imagen eliminada con éxito.' });
+    } catch (error) {
+        console.error("Error en controlador.eliminarImagen:", error);
+        res.status(500).json({ mensaje: 'Error interno del servidor al eliminar la imagen.', detalle: error.message });
+    }
+}
+
+
 // Exportamos las funciones del controlador
 export default {
     obtenerProductos,
     obtenerUnProducto,
-    agregarUnProducto, // Exportamos con el nombre original de tu función
+    agregarUnProducto,
     modificarProducto,
     eliminarProducto,
+    subirImagen, // Exportar la nueva función
+    eliminarImagen, // Exportar la nueva función
 };

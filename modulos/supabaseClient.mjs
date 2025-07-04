@@ -1,9 +1,18 @@
-// modulos/data/supabaseClient.mjs
+// modulos/supabaseAdminClient.mjs
 import { createClient } from '@supabase/supabase-js';
 
-// ¡IMPORTANTE! Reemplaza estos valores con la URL y Anon Key de tu proyecto Supabase.
-// Puedes encontrarlos en tu panel de Supabase -> Project Settings -> API.
-const supabaseUrl = 'https://wxtjlgpzjntrditlgqtz.supabase.co';
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind4dGpsZ3B6am50cmRpdGxncXR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk5NTU5MTEsImV4cCI6MjA2NTUzMTkxMX0.S-SeR-ujYG-WKMEpApavvMrcZ9EEEWRl_cgxPT4CK-Q';
+// Estas variables deben ser configuradas en el entorno de Vercel de tu API.
+// NUNCA las expongas en el frontend.
+const supabaseUrl = process.env.SUPABASE_URL || 'https://wxtjlgpzjntrditlgqtz.supabase.co';
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '13fe1160b7820d517b1cb833e4621073f819d0877f6c35cf4362289822093b7a';
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+if (!supabaseUrl || !supabaseServiceRoleKey) {
+  console.error('ERROR: SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY no están configuradas en el entorno del servidor.');
+  // En un entorno de producción real, podrías querer lanzar un error o salir del proceso.
+}
+
+export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
+  auth: {
+    persistSession: false, // Importante para clientes de servidor
+  },
+});
