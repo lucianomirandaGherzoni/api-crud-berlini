@@ -4,10 +4,11 @@ import { supabaseAdmin } from './supabaseClient.mjs'; // Importa el cliente Supa
 // Función para obtener todos los productos
 async function obtenerProductos() {
     try {
-        const { data: productos, error } = await supabaseAdmin // Usar supabaseAdmin
-            .from('productos') // 'productos' es el nombre de tu tabla en Supabase
-            .select('id, nombre, detalle, precio, stock, imagen_url') // Selecciona las columnas que necesitas, incluyendo imagen_url
-            .order('id', { ascending: true }); // Ordena por ID ascendente
+        const { data: productos, error } = await supabaseAdmin
+            .from('productos')
+            // AÑADIR 'categoria' aquí
+            .select('id, nombre, detalle, precio, stock, imagen_url, categoria')
+            .order('id', { ascending: true });
 
         if (error) {
             throw error;
@@ -22,14 +23,15 @@ async function obtenerProductos() {
 // Función para obtener un producto por ID
 async function obtenerUnProducto(id) {
     try {
-        const { data: producto, error } = await supabaseAdmin // Usar supabaseAdmin
-            .from('productos') // 'productos' es el nombre de tu tabla
-            .select('id, nombre, detalle, precio, stock, imagen_url') // Incluir imagen_url
-            .eq('id', id) // Filtra por 'id' igual al valor proporcionado
-            .single(); // Espera un único resultado
+        const { data: producto, error } = await supabaseAdmin
+            .from('productos')
+            // AÑADIR 'categoria' aquí
+            .select('id, nombre, detalle, precio, stock, imagen_url, categoria')
+            .eq('id', id)
+            .single();
 
         if (error) {
-            if (error.code === 'PGRST116') { // Código de error si no se encuentra un registro
+            if (error.code === 'PGRST116') {
                 return null;
             }
             throw error;
@@ -44,17 +46,20 @@ async function obtenerUnProducto(id) {
 // Función para agregar un producto
 async function agregarProducto(nuevoProducto) {
     try {
-        const { nombre, detalle, precio, stock, imagen_url } = nuevoProducto; // Recibe imagen_url
+        // AÑADIR 'categoria' aquí
+        const { nombre, detalle, precio, stock, imagen_url, categoria } = nuevoProducto;
 
-        const { data, error } = await supabaseAdmin // Usar supabaseAdmin
-            .from('productos') // Nombre de tu tabla en Supabase
+        const { data, error } = await supabaseAdmin
+            .from('productos')
             .insert([
                 {
                     nombre: nombre,
                     detalle: detalle,
                     precio: precio,
                     stock: stock,
-                    imagen_url: imagen_url // Guarda la URL de la imagen
+                    imagen_url: imagen_url,
+                    // AÑADIR 'categoria' aquí
+                    categoria: categoria
                 }
             ])
             .select()
@@ -75,16 +80,19 @@ async function agregarProducto(nuevoProducto) {
 // Función para modificar un producto
 async function modificarProducto(id, productoModificar) {
     try {
-        const { nombre, detalle, precio, stock, imagen_url } = productoModificar; // Recibe imagen_url
+        // AÑADIR 'categoria' aquí
+        const { nombre, detalle, precio, stock, imagen_url, categoria } = productoModificar;
 
-        const { data, error } = await supabaseAdmin // Usar supabaseAdmin
-            .from('productos') // Nombre de tu tabla en Supabase
+        const { data, error } = await supabaseAdmin
+            .from('productos')
             .update({
                 nombre: nombre,
                 detalle: detalle,
                 precio: precio,
                 stock: stock,
-                imagen_url: imagen_url // Actualiza la URL de la imagen
+                imagen_url: imagen_url,
+                // AÑADIR 'categoria' aquí
+                categoria: categoria
             })
             .eq('id', id)
             .select()

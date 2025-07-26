@@ -42,15 +42,14 @@ async function agregarUnProducto(req, res) {
     try {
         const nuevoProducto = req.body;
         // Validación de datos de entrada
-        if (!nuevoProducto.nombre || !nuevoProducto.detalle || typeof nuevoProducto.precio === 'undefined' || typeof nuevoProducto.stock === 'undefined') {
-            return res.status(400).json({ mensaje: "Faltan datos obligatorios para el producto (nombre, detalle, precio, stock)." });
+        // AÑADIR 'categoria' a la validación
+        if (!nuevoProducto.nombre || !nuevoProducto.detalle || typeof nuevoProducto.precio === 'undefined' || typeof nuevoProducto.stock === 'undefined' || !nuevoProducto.categoria) {
+            return res.status(400).json({ mensaje: "Faltan datos obligatorios para el producto (nombre, detalle, precio, stock, categoria)." });
         }
         if (isNaN(nuevoProducto.precio) || isNaN(nuevoProducto.stock)) {
             return res.status(400).json({ mensaje: "Precio y stock deben ser valores numéricos." });
         }
 
-        // El campo imagen_url ahora se espera directamente en el body
-        // Si no se envía, será undefined o null, lo cual es manejado por el modelo (campo NULLable)
         const productoCreado = await modelo.agregarProducto(nuevoProducto);
         res.status(201).json({ mensaje: "Producto agregado con éxito", producto: productoCreado });
     } catch (error) {
@@ -70,8 +69,9 @@ async function modificarProducto(req, res) {
         }
 
         // Validación de datos de entrada para la modificación
-        if (!productoModificado.nombre || !productoModificado.detalle || typeof productoModificado.precio === 'undefined' || typeof productoModificado.stock === 'undefined') {
-            return res.status(400).json({ mensaje: "Faltan datos obligatorios para modificar el producto (nombre, detalle, precio, stock)." });
+        // AÑADIR 'categoria' a la validación
+        if (!productoModificado.nombre || !productoModificado.detalle || typeof productoModificado.precio === 'undefined' || typeof productoModificado.stock === 'undefined' || !productoModificado.categoria) {
+            return res.status(400).json({ mensaje: "Faltan datos obligatorios para modificar el producto (nombre, detalle, precio, stock, categoria)." });
         }
         if (isNaN(productoModificado.precio) || isNaN(productoModificado.stock)) {
             return res.status(400).json({ mensaje: "Precio y stock deben ser valores numéricos." });
@@ -82,7 +82,6 @@ async function modificarProducto(req, res) {
             return res.status(404).json({ mensaje: "Producto a modificar no encontrado." });
         }
 
-        // El campo imagen_url ahora se espera directamente en el body
         const modificado = await modelo.modificarProducto(productoId, productoModificado);
         if (modificado) {
             res.status(200).json({ mensaje: `Producto con ID ${productoId} modificado con éxito.` });
