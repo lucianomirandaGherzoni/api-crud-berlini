@@ -157,6 +157,119 @@ async function eliminarImagen(req, res) {
     }
 }
 
+// funciones del controlador para el manejo de salsas 
+// Función para obtener todas las salsas
+async function obtenerSalsas(req, res) {
+    try {
+        const salsas = await modelo.obtenerSalsas();
+        if (salsas.length === 0) {
+            return res.status(200).json({ mensaje: "No hay salsas en la base de datos." });
+        }
+        res.status(200).json(salsas);
+    } catch (error) {
+        console.error("Error en controladorSalsas.obtenerSalsas:", error);
+        res.status(500).json({ mensaje: "Error interno del servidor al obtener salsas.", detalle: error.message });
+    }
+}
+
+// Función que retorna una salsa por ID
+async function obtenerUnaSalsa(req, res) {
+    const salsaId = parseInt(req.params.id);
+
+    if (isNaN(salsaId)) {
+        return res.status(400).json({ mensaje: 'ID de salsa inválido. Debe ser un número.' });
+    }
+
+    try {
+        const salsa = await modelo.obtenerUnaSalsa(salsaId);
+        if (salsa) {
+            res.status(200).json(salsa);
+        } else {
+            res.status(404).json({ mensaje: 'Salsa no encontrada.' });
+        }
+    } catch (error) {
+        console.error(`Error en controladorSalsas.obtenerUnaSalsa (ID: ${salsaId}):`, error);
+        res.status(500).json({ mensaje: 'Error interno del servidor al obtener la salsa.', detalle: error.message });
+    }
+}
+
+// Función para agregar una nueva salsa
+async function agregarUnaSalsa(req, res) {
+    try {
+        const nuevaSalsa = req.body;
+        // Validación de datos de entrada según los campos de tu tabla "salsas"
+        if (!nuevaSalsa.salsa_nombre || typeof nuevaSalsa.salsa_precio === 'undefined' || typeof nuevaSalsa.salsa_stock === 'undefined') {
+            return res.status(400).json({ mensaje: "Faltan datos obligatorios para la salsa (salsa_nombre, salsa_precio, salsa_stock)." });
+        }
+        if (isNaN(nuevaSalsa.salsa_precio) || isNaN(nuevaSalsa.salsa_stock)) {
+            return res.status(400).json({ mensaje: "Precio y stock de salsa deben ser valores numéricos." });
+        }
+
+        const salsaCreada = await modelo.agregarSalsa(nuevaSalsa);
+        res.status(201).json({ mensaje: "Salsa agregada con éxito", salsa: salsaCreada });
+    } catch (error) {
+        console.error("Error en controladorSalsas.agregarUnaSalsa:", error);
+        res.status(500).json({ mensaje: 'Error interno del servidor al agregar la salsa.', detalle: error.message });
+    }
+}
+
+// Función para modificar una salsa
+async function modificarSalsa(req, res) {
+    try {
+        const salsaId = parseInt(req.params.id);
+        const salsaModificada = req.body;
+
+        if (isNaN(salsaId)) {
+            return res.status(400).json({ mensaje: 'ID de salsa inválido. Debe ser un número.' });
+        }
+
+        // Validación de datos de entrada para la modificación
+        if (!salsaModificada.salsa_nombre || typeof salsaModificada.salsa_precio === 'undefined' || typeof salsaModificada.salsa_stock === 'undefined') {
+            return res.status(400).json({ mensaje: "Faltan datos obligatorios para modificar la salsa (salsa_nombre, salsa_precio, salsa_stock)." });
+        }
+        if (isNaN(salsaModificada.salsa_precio) || isNaN(salsaModificada.salsa_stock)) {
+            return res.status(400).json({ mensaje: "Precio y stock de salsa deben ser valores numéricos." });
+        }
+
+        const salsaExistente = await modelo.obtenerUnaSalsa(salsaId);
+        if (!salsaExistente) {
+            return res.status(404).json({ mensaje: "Salsa a modificar no encontrada." });
+        }
+
+        const modificado = await modelo.modificarSalsa(salsaId, salsaModificada);
+        if (modificado) {
+            res.status(200).json({ mensaje: `Salsa con ID ${salsaId} modificada con éxito.` });
+        } else {
+            res.status(500).json({ mensaje: 'No se pudo modificar la salsa por una razón desconocida.' });
+        }
+
+    } catch (error) {
+        console.error(`Error en controladorSalsas.modificarSalsa (ID: ${req.params.id}):`, error);
+        res.status(500).json({ mensaje: 'Error interno del servidor al modificar la salsa.', detalle: error.message });
+    }
+}
+
+// Función para eliminar una salsa
+async function eliminarSalsa(req, res) {
+    const salsaId = parseInt(req.params.id);
+
+    if (isNaN(salsaId)) {
+        return res.status(400).json({ mensaje: 'ID de salsa inválido. Debe ser un número.' });
+    }
+
+    try {
+        const eliminado = await modelo.eliminarSalsa(salsaId);
+        if (eliminado) {
+            res.status(200).json({ mensaje: `Salsa con ID ${salsaId} eliminada con éxito.` });
+        } else {
+            res.status(404).json({ mensaje: 'Salsa no encontrada para eliminar.' });
+        }
+    } catch (error) {
+        console.error(`Error en controladorSalsas.eliminarSalsa (ID: ${salsaId}):`, error);
+        res.status(500).json({ mensaje: 'Error interno del servidor al eliminar la salsa.', detalle: error.message });
+    }
+}
+
 
 // Exportamos las funciones del controlador
 export default {
@@ -167,4 +280,10 @@ export default {
     eliminarProducto,
     subirImagen, // Exportar la nueva función
     eliminarImagen, // Exportar la nueva función
+    /* exportar crud-controlador de salsas */
+    obtenerSalsas,
+    obtenerUnaSalsa,
+    agregarUnaSalsa,
+    modificarSalsa,
+    eliminarSalsa,
 };

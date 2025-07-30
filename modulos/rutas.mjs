@@ -20,4 +20,12 @@ rutasApi.delete('/api/v1/productos/:id', controlador.eliminarProducto);
 rutasApi.post('/api/v1/productos/upload-image', upload.single('image'), controlador.subirImagen);
 rutasApi.delete('/api/v1/productos/delete-image', controlador.eliminarImagen);
 
+
+//rutas salsas
+rutasApi.get('/api/v1/salsas', controlador.obtenerSalsas);
+rutasApi.get('/api/v1/salsas/:id', controlador.obtenerUnaSalsa);
+rutasApi.post('/api/v1/salsas', controlador.agregarUnaSalsa);
+rutasApi.put('/api/v1/salsas/:id', controlador.modificarSalsa);
+rutasApi.delete('/api/v1/salsas/:id', controlador.eliminarSalsa);
+
 export default rutasApi;

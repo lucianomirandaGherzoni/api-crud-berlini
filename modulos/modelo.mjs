@@ -25,7 +25,6 @@ async function obtenerUnProducto(id) {
     try {
         const { data: producto, error } = await supabaseAdmin
             .from('productos')
-            // AÑADIR 'categoria' aquí
             .select('id, nombre, detalle, precio, stock, imagen_url, categoria')
             .eq('id', id)
             .single();
@@ -58,7 +57,6 @@ async function agregarProducto(nuevoProducto) {
                     precio: precio,
                     stock: stock,
                     imagen_url: imagen_url,
-                    // AÑADIR 'categoria' aquí
                     categoria: categoria
                 }
             ])
@@ -102,7 +100,7 @@ async function modificarProducto(id, productoModificar) {
             console.error(`Error al modificar producto con ID ${id} en Supabase:`, error);
             throw new Error(`Error al modificar producto: ${error.message}`);
         }
-        
+
         return data !== null;
     } catch (error) {
         console.error(`Error en modelo.modificarProducto (ID: ${id}):`, error);
@@ -199,6 +197,127 @@ async function eliminarImagenStorage(imageUrl) {
     }
 }
 
+// --- Nuevas funciones para Salsas ---
+
+// Función para obtener todas las salsas
+async function obtenerSalsas() {
+    try {
+        const { data: salsas, error } = await supabaseAdmin
+            .from('salsas') // Usar la tabla 'salsas'
+            .select('id, salsa_nombre, salsa_precio, salsa_stock') // Campos de la tabla 'salsas'
+            .order('id', { ascending: true });
+
+        if (error) {
+            throw error;
+        }
+        return salsas;
+    } catch (error) {
+        console.error("Error al obtener salsas:", error.message);
+        throw error;
+    }
+}
+
+// Función para obtener una salsa por ID
+async function obtenerUnaSalsa(id) {
+    try {
+        const { data: salsa, error } = await supabaseAdmin
+            .from('salsas') // Usar la tabla 'salsas'
+            .select('id, salsa_nombre, salsa_precio, salsa_stock') // Campos de la tabla 'salsas'
+            .eq('id', id)
+            .single();
+
+        if (error) {
+            if (error.code === 'PGRST116') {
+                return null;
+            }
+            throw error;
+        }
+        return salsa;
+    } catch (error) {
+        console.error(`Error al obtener salsa con ID ${id}:`, error.message);
+        throw error;
+    }
+}
+
+// Función para agregar una salsa
+async function agregarSalsa(nuevaSalsa) {
+    try {
+        const { salsa_nombre, salsa_precio, salsa_stock } = nuevaSalsa; // Campos de la tabla 'salsas'
+
+        const { data, error } = await supabaseAdmin
+            .from('salsas') // Usar la tabla 'salsas'
+            .insert([
+                {
+                    salsa_nombre: salsa_nombre,
+                    salsa_precio: salsa_precio,
+                    salsa_stock: salsa_stock
+                }
+            ])
+            .select()
+            .single();
+
+        if (error) {
+            console.error("Error al agregar salsa en Supabase:", error);
+            throw new Error(`Error al agregar salsa: ${error.message}`);
+        }
+
+        return data;
+    } catch (error) {
+        console.error("Error en modelo.agregarSalsa:", error);
+        throw error;
+    }
+}
+
+// Función para modificar una salsa
+async function modificarSalsa(id, salsaModificar) {
+    try {
+        const { salsa_nombre, salsa_precio, salsa_stock } = salsaModificar; // Campos de la tabla 'salsas'
+
+        const { data, error } = await supabaseAdmin
+            .from('salsas') // Usar la tabla 'salsas'
+            .update({
+                salsa_nombre: salsa_nombre,
+                salsa_precio: salsa_precio,
+                salsa_stock: salsa_stock
+            })
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) {
+            console.error(`Error al modificar salsa con ID ${id} en Supabase:`, error);
+            throw new Error(`Error al modificar salsa: ${error.message}`);
+        }
+
+        return data !== null;
+    } catch (error) {
+        console.error(`Error en modelo.modificarSalsa (ID: ${id}):`, error);
+        throw error;
+    }
+}
+
+// Función para eliminar una salsa
+async function eliminarSalsa(id) {
+    try {
+        const { error, count } = await supabaseAdmin
+            .from('salsas') // Usar la tabla 'salsas'
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            console.error(`Error al eliminar salsa con ID ${id} en Supabase:`, error);
+            throw new Error(`Error al eliminar salsa: ${error.message}`);
+        }
+
+        return count > 0;
+    } catch (error) {
+        console.error(`Error en modelo.eliminarSalsa (ID: ${id}):`, error);
+        throw error;
+    }
+}
+
+
+
 
 export default {
     obtenerProductos,
@@ -208,4 +327,11 @@ export default {
     eliminarProducto,
     subirImagenStorage, // Exportar la nueva función
     eliminarImagenStorage, // Exportar la nueva función
+
+    // Exportaciones de salsas
+    obtenerSalsas,
+    obtenerUnaSalsa,
+    agregarSalsa,
+    modificarSalsa,
+    eliminarSalsa,
 };
