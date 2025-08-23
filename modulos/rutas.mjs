@@ -20,6 +20,8 @@ rutasApi.delete('/api/v1/productos/:id', controlador.eliminarProducto);
 rutasApi.post('/api/v1/productos/upload-image', upload.single('image'), controlador.subirImagen);
 rutasApi.delete('/api/v1/productos/delete-image', controlador.eliminarImagen);
 
+// Rutas para descuento de stock
+rutasApi.post('/api/v1/descontar-stock', controlador.descontarStock);
 
 //rutas salsas
 rutasApi.get('/api/v1/salsas', controlador.obtenerSalsas);

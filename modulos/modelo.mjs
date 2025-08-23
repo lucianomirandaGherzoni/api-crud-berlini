@@ -316,6 +316,66 @@ async function eliminarSalsa(id) {
     }
 }
 
+// Función para descontar stock de múltiples ítems
+async function descontarStock(items) {
+    try {
+        const updates = [];
+
+        for (const item of items) {
+            const { id, type, quantity } = item;
+
+            // Determina la tabla y el campo de stock según el tipo
+            const tableName = type === 'producto' ? 'productos' : 'salsas';
+            const stockColumnName = type === 'producto' ? 'stock' : 'salsa_stock';
+
+            // Primero, obtén el stock actual para asegurarte de que hay suficiente
+            const { data, error: fetchError } = await supabaseAdmin
+                .from(tableName)
+                .select(stockColumnName)
+                .eq('id', id)
+                .single();
+
+            if (fetchError) {
+                throw new Error(`Error al obtener stock para ${type} ${id}: ${fetchError.message}`);
+            }
+
+            if (!data) {
+                throw new Error(`${type} con ID ${id} no encontrado.`);
+            }
+
+            const currentStock = data[stockColumnName];
+            const newStock = currentStock - quantity;
+
+            // Valida que el stock no sea negativo
+            if (newStock < 0) {
+                throw new Error(`Stock insuficiente para ${type} con ID ${id}. Stock actual: ${currentStock}, Cantidad solicitada: ${quantity}`);
+            }
+
+            // Prepara la actualización
+            const updatePromise = supabaseAdmin
+                .from(tableName)
+                .update({ [stockColumnName]: newStock })
+                .eq('id', id);
+
+            updates.push(updatePromise);
+        }
+
+        // Ejecuta todas las actualizaciones en paralelo
+        const results = await Promise.all(updates);
+
+        // Verifica si alguna de las promesas de actualización falló
+        for (const result of results) {
+            if (result.error) {
+                throw new Error(`Error al actualizar stock: ${result.error.message}`);
+            }
+        }
+
+        return true;
+    } catch (error) {
+        console.error("Error en modelo.descontarStock:", error.message);
+        throw error;
+    }
+}
 
 
 
@@ -334,4 +394,6 @@ export default {
     agregarSalsa,
     modificarSalsa,
     eliminarSalsa,
+
+    descontarStock,
 };

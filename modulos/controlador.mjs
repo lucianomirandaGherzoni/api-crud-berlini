@@ -271,6 +271,25 @@ async function eliminarSalsa(req, res) {
 }
 
 
+// Función para manejar el descuento de stock
+async function descontarStock(req, res) {
+    const items = req.body;
+
+    if (!Array.isArray(items) || items.length === 0) {
+        return res.status(400).json({ mensaje: 'El cuerpo de la solicitud debe ser un array de ítems.' });
+    }
+
+    try {
+        await modelo.descontarStock(items);
+        res.status(200).json({ mensaje: 'Stock descontado con éxito.' });
+    } catch (error) {
+        // En caso de error (por ejemplo, stock insuficiente), envía una respuesta clara al cliente
+        res.status(500).json({ mensaje: 'Error al procesar el pedido. ' + error.message });
+    }
+}
+
+
+
 // Exportamos las funciones del controlador
 export default {
     obtenerProductos,
@@ -286,4 +305,5 @@ export default {
     agregarUnaSalsa,
     modificarSalsa,
     eliminarSalsa,
+    descontarStock // Agrega la nueva función aquí
 };
