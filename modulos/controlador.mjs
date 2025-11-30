@@ -81,9 +81,22 @@ async function modificarProducto(req, res) {
         if (!productoExistente) {
             return res.status(404).json({ mensaje: "Producto a modificar no encontrado." });
         }
+        
+        // --- Lógica añadida para la eliminación de imagen antigua ---
+        const imagenUrlAntigua = productoExistente.imagen_url;
+        const imagenUrlNueva = productoModificado.imagen_url;
+        // -----------------------------------------------------------
 
         const modificado = await modelo.modificarProducto(productoId, productoModificado);
         if (modificado) {
+            
+            // --- Eliminación de imagen antigua después de modificar el producto ---
+            // Solo eliminar si existía una imagen antigua Y la nueva URL es diferente.
+            if (imagenUrlAntigua && imagenUrlAntigua !== imagenUrlNueva) {
+                await modelo.eliminarImagenStorage(imagenUrlAntigua);
+            }
+            // ---------------------------------------------------------------------
+
             res.status(200).json({ mensaje: `Producto con ID ${productoId} modificado con éxito.` });
         } else {
             res.status(500).json({ mensaje: 'No se pudo modificar el producto por una razón desconocida.' });
