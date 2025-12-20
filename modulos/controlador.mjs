@@ -11,7 +11,6 @@ async function obtenerProductos(req, res) {
         }
         res.status(200).json(productos);
     } catch (error) {
-        console.error("Error en controlador.obtenerProductos:", error);
         res.status(500).json({ mensaje: "Error interno del servidor al obtener productos.", detalle: error.message });
     }
 }
@@ -32,7 +31,6 @@ async function obtenerUnProducto(req, res) {
             res.status(404).json({ mensaje: 'Producto no encontrado.' });
         }
     } catch (error) {
-        console.error(`Error en controlador.obtenerUnProducto (ID: ${productoId}):`, error);
         res.status(500).json({ mensaje: 'Error interno del servidor al obtener el producto.', detalle: error.message });
     }
 }
@@ -53,7 +51,6 @@ async function agregarUnProducto(req, res) {
         const productoCreado = await modelo.agregarProducto(nuevoProducto);
         res.status(201).json({ mensaje: "Producto agregado con éxito", producto: productoCreado });
     } catch (error) {
-        console.error("Error en controlador.agregarUnProducto:", error);
         res.status(500).json({ mensaje: 'Error interno del servidor al agregar el producto.', detalle: error.message });
     }
 }
@@ -103,7 +100,6 @@ async function modificarProducto(req, res) {
         }
 
     } catch (error) {
-        console.error(`Error en controlador.modificarProducto (ID: ${req.params.id}):`, error);
         res.status(500).json({ mensaje: 'Error interno del servidor al modificar el producto.', detalle: error.message });
     }
 }
@@ -130,7 +126,6 @@ async function eliminarProducto(req, res) {
             res.status(404).json({ mensaje: 'Producto no encontrado para eliminar.' });
         }
     } catch (error) {
-        console.error(`Error en controlador.eliminarProducto (ID: ${productoId}):`, error);
         res.status(500).json({ mensaje: 'Error interno del servidor al eliminar el producto.', detalle: error.message });
     }
 }
@@ -149,7 +144,6 @@ async function subirImagen(req, res) {
 
         res.status(200).json({ mensaje: 'Imagen subida con éxito', imageUrl: imageUrl });
     } catch (error) {
-        console.error("Error en controlador.subirImagen:", error);
         res.status(500).json({ mensaje: 'Error interno del servidor al subir la imagen.', detalle: error.message });
     }
 }
@@ -165,7 +159,6 @@ async function eliminarImagen(req, res) {
         await modelo.eliminarImagenStorage(imageUrl);
         res.status(200).json({ mensaje: 'Imagen eliminada con éxito.' });
     } catch (error) {
-        console.error("Error en controlador.eliminarImagen:", error);
         res.status(500).json({ mensaje: 'Error interno del servidor al eliminar la imagen.', detalle: error.message });
     }
 }
@@ -180,7 +173,6 @@ async function obtenerSalsas(req, res) {
         }
         res.status(200).json(salsas);
     } catch (error) {
-        console.error("Error en controladorSalsas.obtenerSalsas:", error);
         res.status(500).json({ mensaje: "Error interno del servidor al obtener salsas.", detalle: error.message });
     }
 }
@@ -201,7 +193,6 @@ async function obtenerUnaSalsa(req, res) {
             res.status(404).json({ mensaje: 'Salsa no encontrada.' });
         }
     } catch (error) {
-        console.error(`Error en controladorSalsas.obtenerUnaSalsa (ID: ${salsaId}):`, error);
         res.status(500).json({ mensaje: 'Error interno del servidor al obtener la salsa.', detalle: error.message });
     }
 }
@@ -221,7 +212,6 @@ async function agregarUnaSalsa(req, res) {
         const salsaCreada = await modelo.agregarSalsa(nuevaSalsa);
         res.status(201).json({ mensaje: "Salsa agregada con éxito", salsa: salsaCreada });
     } catch (error) {
-        console.error("Error en controladorSalsas.agregarUnaSalsa:", error);
         res.status(500).json({ mensaje: 'Error interno del servidor al agregar la salsa.', detalle: error.message });
     }
 }
@@ -257,7 +247,6 @@ async function modificarSalsa(req, res) {
         }
 
     } catch (error) {
-        console.error(`Error en controladorSalsas.modificarSalsa (ID: ${req.params.id}):`, error);
         res.status(500).json({ mensaje: 'Error interno del servidor al modificar la salsa.', detalle: error.message });
     }
 }
@@ -278,7 +267,6 @@ async function eliminarSalsa(req, res) {
             res.status(404).json({ mensaje: 'Salsa no encontrada para eliminar.' });
         }
     } catch (error) {
-        console.error(`Error en controladorSalsas.eliminarSalsa (ID: ${salsaId}):`, error);
         res.status(500).json({ mensaje: 'Error interno del servidor al eliminar la salsa.', detalle: error.message });
     }
 }

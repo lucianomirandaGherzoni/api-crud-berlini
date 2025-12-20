@@ -15,7 +15,6 @@ async function obtenerProductos() {
         }
         return productos;
     } catch (error) {
-        console.error("Error al obtener productos:", error.message);
         throw error;
     }
 }
@@ -37,7 +36,6 @@ async function obtenerUnProducto(id) {
         }
         return producto;
     } catch (error) {
-        console.error(`Error al obtener producto con ID ${id}:`, error.message);
         throw error;
     }
 }
@@ -64,13 +62,11 @@ async function agregarProducto(nuevoProducto) {
             .single();
 
         if (error) {
-            console.error("Error al agregar producto en Supabase:", error);
             throw new Error(`Error al agregar producto: ${error.message}`);
         }
 
         return data;
     } catch (error) {
-        console.error("Error en modelo.agregarProducto:", error);
         throw error;
     }
 }
@@ -97,13 +93,11 @@ async function modificarProducto(id, productoModificar) {
             .single();
 
         if (error) {
-            console.error(`Error al modificar producto con ID ${id} en Supabase:`, error);
             throw new Error(`Error al modificar producto: ${error.message}`);
         }
 
         return data !== null;
     } catch (error) {
-        console.error(`Error en modelo.modificarProducto (ID: ${id}):`, error);
         throw error;
     }
 }
@@ -117,13 +111,11 @@ async function eliminarProducto(id) {
             .eq('id', id);
 
         if (error) {
-            console.error(`Error al eliminar producto con ID ${id} en Supabase:`, error);
             throw new Error(`Error al eliminar producto: ${error.message}`);
         }
 
         return count > 0;
     } catch (error) {
-        console.error(`Error en modelo.eliminarProducto (ID: ${id}):`, error);
         throw error;
     }
 }
@@ -146,7 +138,6 @@ async function subirImagenStorage(fileBuffer, originalFile) { // Cambiado a orig
             });
 
         if (error) {
-            console.error("Error al subir imagen a Supabase Storage:", error);
             throw new Error(`Error al subir imagen: ${error.message}`);
         }
 
@@ -162,7 +153,6 @@ async function subirImagenStorage(fileBuffer, originalFile) { // Cambiado a orig
         }
 
     } catch (error) {
-        console.error("Error en modelo.subirImagenStorage:", error);
         throw error;
     }
 }
@@ -178,7 +168,6 @@ async function eliminarImagenStorage(imageUrl) {
         const urlParts = imageUrl.split('/');
         const bucketIndex = urlParts.indexOf(SUPABASE_BUCKET_NAME);
         if (bucketIndex === -1 || bucketIndex + 1 >= urlParts.length) {
-            console.warn("No se pudo parsear la URL de la imagen para eliminar:", imageUrl);
             return; // No se puede eliminar si la URL no es válida
         }
         const filePathInBucket = urlParts.slice(bucketIndex + 1).join('/');
@@ -188,12 +177,10 @@ async function eliminarImagenStorage(imageUrl) {
             .remove([filePathInBucket]);
 
         if (error) {
-            console.warn("Error al eliminar imagen de Supabase Storage:", error.message);
-        } else {
-            console.log(`Imagen ${filePathInBucket} eliminada de Supabase Storage.`);
+            throw new Error(`Error al eliminar imagen: ${error.message}`);
         }
     } catch (error) {
-        console.warn("Error en modelo.eliminarImagenStorage:", error);
+        throw error;
     }
 }
 
@@ -212,7 +199,6 @@ async function obtenerSalsas() {
         }
         return salsas;
     } catch (error) {
-        console.error("Error al obtener salsas:", error.message);
         throw error;
     }
 }
@@ -234,7 +220,6 @@ async function obtenerUnaSalsa(id) {
         }
         return salsa;
     } catch (error) {
-        console.error(`Error al obtener salsa con ID ${id}:`, error.message);
         throw error;
     }
 }
@@ -257,13 +242,11 @@ async function agregarSalsa(nuevaSalsa) {
             .single();
 
         if (error) {
-            console.error("Error al agregar salsa en Supabase:", error);
             throw new Error(`Error al agregar salsa: ${error.message}`);
         }
 
         return data;
     } catch (error) {
-        console.error("Error en modelo.agregarSalsa:", error);
         throw error;
     }
 }
@@ -285,13 +268,11 @@ async function modificarSalsa(id, salsaModificar) {
             .single();
 
         if (error) {
-            console.error(`Error al modificar salsa con ID ${id} en Supabase:`, error);
             throw new Error(`Error al modificar salsa: ${error.message}`);
         }
 
         return data !== null;
     } catch (error) {
-        console.error(`Error en modelo.modificarSalsa (ID: ${id}):`, error);
         throw error;
     }
 }
@@ -305,13 +286,11 @@ async function eliminarSalsa(id) {
             .eq('id', id);
 
         if (error) {
-            console.error(`Error al eliminar salsa con ID ${id} en Supabase:`, error);
             throw new Error(`Error al eliminar salsa: ${error.message}`);
         }
 
         return count > 0;
     } catch (error) {
-        console.error(`Error en modelo.eliminarSalsa (ID: ${id}):`, error);
         throw error;
     }
 }
@@ -372,7 +351,6 @@ async function descontarStock(items) {
 
         return true;
     } catch (error) {
-        console.error("Error en modelo.descontarStock:", error.message);
         throw error;
     }
 }
