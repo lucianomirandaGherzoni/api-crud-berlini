@@ -393,7 +393,7 @@ async function obtenerUnaOrden(req, res) {
 }
 
 async function crearOrden(req, res) {
-    const { nombre_cliente, telefono, direccion, metodo_pago, notas, total, items } = req.body;
+    const { nombre_cliente, telefono, direccion, metodo_entrega, metodo_pago, notas, total, items } = req.body;
     if (!nombre_cliente || typeof total === 'undefined' || !Array.isArray(items) || items.length === 0) {
         return res.status(400).json({ mensaje: 'Faltan datos obligatorios: nombre_cliente, total, items[].' });
     }
@@ -401,7 +401,7 @@ async function crearOrden(req, res) {
         return res.status(400).json({ mensaje: 'El total debe ser un número positivo.' });
     }
     try {
-        const nueva = await modelo.crearOrden({ nombre_cliente, telefono, direccion, metodo_pago, notas, total: Number(total), items });
+        const nueva = await modelo.crearOrden({ nombre_cliente, telefono, direccion, metodo_entrega, metodo_pago, notas, total: Number(total), items });
         res.status(201).json({ mensaje: 'Orden creada con éxito.', orden: nueva });
     } catch (error) {
         res.status(500).json({ mensaje: 'Error al crear orden.', detalle: error.message });

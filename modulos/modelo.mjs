@@ -435,18 +435,19 @@ async function obtenerUnaOrden(id) {
     return data;
 }
 
-async function crearOrden({ nombre_cliente, telefono, direccion, metodo_pago, notas, total, items }) {
+async function crearOrden({ nombre_cliente, telefono, direccion, metodo_entrega, metodo_pago, notas, total, items }) {
     const { data, error } = await supabaseAdmin
         .from('ordenes')
         .insert([{
             nombre_cliente,
-            telefono:    telefono    || null,
-            direccion:   direccion   || null,
-            metodo_pago: metodo_pago || 'efectivo',
-            notas:       notas       || null,
+            telefono:        telefono        || null,
+            direccion:       direccion       || null,
+            metodo_entrega:  metodo_entrega  || 'domicilio',
+            metodo_pago:     metodo_pago     || 'efectivo',
+            notas:           notas           || null,
             total,
-            items:       items       || [],
-            estado:      'pendiente'
+            items:           items           || [],
+            estado:          'pendiente'
         }])
         .select()
         .single();
@@ -461,7 +462,7 @@ async function actualizarEstadoOrden(id, estado) {
     }
     const { data, error } = await supabaseAdmin
         .from('ordenes')
-        .update({ estado, updated_at: new Date().toISOString() })
+        .update({ estado })
         .eq('id', id)
         .select()
         .single();
