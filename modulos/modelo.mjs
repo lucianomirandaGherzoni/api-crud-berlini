@@ -462,7 +462,7 @@ async function actualizarEstadoOrden(id, estado) {
     }
     const { data, error } = await supabaseAdmin
         .from('ordenes')
-        .update({ estado })
+        .update({ estado, updated_at: new Date().toISOString() })
         .eq('id', id)
         .select()
         .single();
