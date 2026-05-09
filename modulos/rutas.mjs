@@ -1,52 +1,47 @@
 import { Router } from 'express';
 import controlador from './controlador.mjs';
-import multer from 'multer'; // Importar multer
+import multer from 'multer';
+import { requireAuth } from './middleware.mjs';
 
 const rutasApi = Router();
 
-// Configuración de Multer para almacenar archivos en memoria
-// Esto es ideal para Vercel Serverless Functions ya que no tienen un sistema de archivos persistente.
+// Multer con límite de 5MB por imagen
 const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
+const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
 
-rutasApi.get('/api/v1/productos', controlador.obtenerProductos);
-rutasApi.get('/api/v1/productos/:id', controlador.obtenerUnProducto);
-rutasApi.post('/api/v1/productos', controlador.agregarUnProducto);
-rutasApi.put('/api/v1/productos/:id', controlador.modificarProducto);
-rutasApi.delete('/api/v1/productos/:id', controlador.eliminarProducto);
+// ─── Productos (lectura pública, escritura protegida) ──────────────────────
+rutasApi.get('/api/v1/productos',              controlador.obtenerProductos);
+rutasApi.get('/api/v1/productos/:id',          controlador.obtenerUnProducto);
+rutasApi.post('/api/v1/productos',             requireAuth, controlador.agregarUnProducto);
+rutasApi.put('/api/v1/productos/:id',          requireAuth, controlador.modificarProducto);
+rutasApi.delete('/api/v1/productos/:id',       requireAuth, controlador.eliminarProducto);
+rutasApi.post('/api/v1/productos/upload-image', requireAuth, upload.single('image'), controlador.subirImagen);
+rutasApi.delete('/api/v1/productos/delete-image', requireAuth, controlador.eliminarImagen);
 
-// Nuevas rutas para manejo de imágenes
-// 'image' es el nombre del campo en el FormData que el frontend enviará
-rutasApi.post('/api/v1/productos/upload-image', upload.single('image'), controlador.subirImagen);
-rutasApi.delete('/api/v1/productos/delete-image', controlador.eliminarImagen);
+// ─── Salsas ───────────────────────────────────────────────────────────────
+rutasApi.get('/api/v1/salsas',                 controlador.obtenerSalsas);
+rutasApi.get('/api/v1/salsas/:id',             controlador.obtenerUnaSalsa);
+rutasApi.post('/api/v1/salsas',                requireAuth, controlador.agregarUnaSalsa);
+rutasApi.put('/api/v1/salsas/:id',             requireAuth, controlador.modificarSalsa);
+rutasApi.delete('/api/v1/salsas/:id',          requireAuth, controlador.eliminarSalsa);
 
+// ─── Descuento de stock (público, llamado desde el checkout del cliente) ──
+rutasApi.post('/api/v1/descontar-stock',       controlador.descontarStock);
 
-//rutas salsas
-rutasApi.get('/api/v1/salsas', controlador.obtenerSalsas);
-rutasApi.get('/api/v1/salsas/:id', controlador.obtenerUnaSalsa);
-rutasApi.post('/api/v1/salsas', controlador.agregarUnaSalsa);
-rutasApi.put('/api/v1/salsas/:id', controlador.modificarSalsa);
-rutasApi.delete('/api/v1/salsas/:id', controlador.eliminarSalsa);
+// ─── Categorías ───────────────────────────────────────────────────────────
+rutasApi.get('/api/v1/categorias',             controlador.obtenerCategorias);
+rutasApi.get('/api/v1/categorias/:id',         controlador.obtenerUnaCategoria);
+rutasApi.post('/api/v1/categorias',            requireAuth, controlador.agregarCategoria);
+rutasApi.put('/api/v1/categorias/:id',         requireAuth, controlador.modificarCategoria);
+rutasApi.delete('/api/v1/categorias/:id',      requireAuth, controlador.eliminarCategoria);
 
+// ─── Órdenes (crear es público, leer/actualizar requiere auth) ────────────
+rutasApi.post('/api/v1/ordenes',               controlador.crearOrden);
+rutasApi.get('/api/v1/ordenes',                requireAuth, controlador.obtenerOrdenes);
+rutasApi.get('/api/v1/ordenes/:id',            requireAuth, controlador.obtenerUnaOrden);
+rutasApi.patch('/api/v1/ordenes/:id',          requireAuth, controlador.actualizarEstadoOrden);
 
-// Rutas para descuento de stock
-rutasApi.post('/api/v1/descontar-stock', controlador.descontarStock);
-
-// ─── Rutas de Categorías ───────────────────────
-rutasApi.get('/api/v1/categorias',       controlador.obtenerCategorias);
-rutasApi.get('/api/v1/categorias/:id',   controlador.obtenerUnaCategoria);
-rutasApi.post('/api/v1/categorias',      controlador.agregarCategoria);
-rutasApi.put('/api/v1/categorias/:id',   controlador.modificarCategoria);
-rutasApi.delete('/api/v1/categorias/:id', controlador.eliminarCategoria);
-
-// ─── Rutas de Órdenes ─────────────────────────
-rutasApi.get('/api/v1/ordenes',          controlador.obtenerOrdenes);
-rutasApi.get('/api/v1/ordenes/:id',      controlador.obtenerUnaOrden);
-rutasApi.post('/api/v1/ordenes',         controlador.crearOrden);
-rutasApi.patch('/api/v1/ordenes/:id',    controlador.actualizarEstadoOrden);
-
-// ─── Rutas de Admin ───────────────────────────
-rutasApi.post('/api/v1/admin/invitar',   controlador.invitarAdmin);
-
+// ─── Admin ────────────────────────────────────────────────────────────────
+rutasApi.post('/api/v1/admin/invitar',         requireAuth, controlador.invitarAdmin);
 
 export default rutasApi;
