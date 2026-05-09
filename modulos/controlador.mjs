@@ -450,13 +450,3 @@ export default {
     crearOrden,
     actualizarEstadoOrden,
 };
-    subirImagen, // Exportar la nueva función
-    eliminarImagen, // Exportar la nueva función
-    /* exportar crud-controlador de salsas */
-    obtenerSalsas,
-    obtenerUnaSalsa,
-    agregarUnaSalsa,
-    modificarSalsa,
-    eliminarSalsa,
-    descontarStock // Agrega la nueva función aquí
-};
