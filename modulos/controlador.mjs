@@ -1,6 +1,7 @@
 // modulos/controlador.mjs
 
-import modelo from './modelo.mjs'; // Importa el modelo de productos
+import modelo from './modelo.mjs';
+import { supabaseAdmin } from './supabaseClient.mjs';
 
 // Función para manejar la solicitud de obtener todos los productos
 async function obtenerProductos(req, res) {
@@ -422,6 +423,23 @@ async function actualizarEstadoOrden(req, res) {
     }
 }
 
+// ─── Invitar administrador ─────────────────────
+async function invitarAdmin(req, res) {
+    const { email, redirectTo } = req.body;
+    if (!email || !email.includes('@')) {
+        return res.status(400).json({ mensaje: 'Email válido requerido.' });
+    }
+    try {
+        const { error } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
+            ...(redirectTo ? { redirectTo } : {})
+        });
+        if (error) throw error;
+        res.status(200).json({ mensaje: `Invitación enviada a ${email}.` });
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al enviar invitación.', detalle: error.message });
+    }
+}
+
 export default {
     obtenerProductos,
     obtenerUnProducto,
@@ -449,4 +467,7 @@ export default {
     obtenerUnaOrden,
     crearOrden,
     actualizarEstadoOrden,
+
+    // Admin
+    invitarAdmin,
 };

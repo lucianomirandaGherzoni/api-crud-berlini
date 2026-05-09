@@ -45,5 +45,8 @@ rutasApi.get('/api/v1/ordenes/:id',      controlador.obtenerUnaOrden);
 rutasApi.post('/api/v1/ordenes',         controlador.crearOrden);
 rutasApi.patch('/api/v1/ordenes/:id',    controlador.actualizarEstadoOrden);
 
+// ─── Rutas de Admin ───────────────────────────
+rutasApi.post('/api/v1/admin/invitar',   controlador.invitarAdmin);
+
 
 export default rutasApi;
