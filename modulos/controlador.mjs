@@ -291,13 +291,165 @@ async function descontarStock(req, res) {
 
 
 
-// Exportamos las funciones del controlador
+// ─── CATEGORÍAS ───────────────────────────────
+
+async function obtenerCategorias(req, res) {
+    try {
+        const categorias = await modelo.obtenerCategorias();
+        res.status(200).json(categorias);
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al obtener categorías.', detalle: error.message });
+    }
+}
+
+async function obtenerUnaCategoria(req, res) {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ mensaje: 'ID inválido.' });
+    try {
+        const cat = await modelo.obtenerUnaCategoria(id);
+        if (!cat) return res.status(404).json({ mensaje: 'Categoría no encontrada.' });
+        res.status(200).json(cat);
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al obtener categoría.', detalle: error.message });
+    }
+}
+
+async function agregarCategoria(req, res) {
+    const { nombre, slug, descripcion } = req.body;
+    if (!nombre || !slug) {
+        return res.status(400).json({ mensaje: 'nombre y slug son obligatorios.' });
+    }
+    if (!/^[a-z0-9_-]+$/.test(slug)) {
+        return res.status(400).json({ mensaje: 'El slug solo puede contener minúsculas, números, guión (-) o guión bajo (_).' });
+    }
+    try {
+        const nueva = await modelo.agregarCategoria({ nombre, slug, descripcion });
+        res.status(201).json({ mensaje: 'Categoría creada con éxito.', categoria: nueva });
+    } catch (error) {
+        // Slug duplicado → Supabase lanza código 23505
+        if (error.message.includes('23505') || error.message.includes('unique')) {
+            return res.status(409).json({ mensaje: `El slug "${slug}" ya existe.` });
+        }
+        res.status(500).json({ mensaje: 'Error al crear categoría.', detalle: error.message });
+    }
+}
+
+async function modificarCategoria(req, res) {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ mensaje: 'ID inválido.' });
+    const { nombre, slug, descripcion } = req.body;
+    if (!nombre || !slug) {
+        return res.status(400).json({ mensaje: 'nombre y slug son obligatorios.' });
+    }
+    if (!/^[a-z0-9_-]+$/.test(slug)) {
+        return res.status(400).json({ mensaje: 'Slug inválido.' });
+    }
+    try {
+        const existe = await modelo.obtenerUnaCategoria(id);
+        if (!existe) return res.status(404).json({ mensaje: 'Categoría no encontrada.' });
+        await modelo.modificarCategoria(id, { nombre, slug, descripcion });
+        res.status(200).json({ mensaje: `Categoría ${id} modificada con éxito.` });
+    } catch (error) {
+        if (error.message.includes('23505') || error.message.includes('unique')) {
+            return res.status(409).json({ mensaje: `El slug "${slug}" ya está en uso.` });
+        }
+        res.status(500).json({ mensaje: 'Error al modificar categoría.', detalle: error.message });
+    }
+}
+
+async function eliminarCategoria(req, res) {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ mensaje: 'ID inválido.' });
+    try {
+        await modelo.eliminarCategoria(id);
+        res.status(200).json({ mensaje: `Categoría ${id} eliminada con éxito.` });
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al eliminar categoría.', detalle: error.message });
+    }
+}
+
+// ─── ÓRDENES ──────────────────────────────────
+
+async function obtenerOrdenes(req, res) {
+    try {
+        const ordenes = await modelo.obtenerOrdenes();
+        res.status(200).json(ordenes);
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al obtener órdenes.', detalle: error.message });
+    }
+}
+
+async function obtenerUnaOrden(req, res) {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ mensaje: 'ID inválido.' });
+    try {
+        const orden = await modelo.obtenerUnaOrden(id);
+        if (!orden) return res.status(404).json({ mensaje: 'Orden no encontrada.' });
+        res.status(200).json(orden);
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al obtener orden.', detalle: error.message });
+    }
+}
+
+async function crearOrden(req, res) {
+    const { nombre_cliente, telefono, direccion, metodo_pago, notas, total, items } = req.body;
+    if (!nombre_cliente || typeof total === 'undefined' || !Array.isArray(items) || items.length === 0) {
+        return res.status(400).json({ mensaje: 'Faltan datos obligatorios: nombre_cliente, total, items[].' });
+    }
+    if (isNaN(Number(total)) || Number(total) < 0) {
+        return res.status(400).json({ mensaje: 'El total debe ser un número positivo.' });
+    }
+    try {
+        const nueva = await modelo.crearOrden({ nombre_cliente, telefono, direccion, metodo_pago, notas, total: Number(total), items });
+        res.status(201).json({ mensaje: 'Orden creada con éxito.', orden: nueva });
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al crear orden.', detalle: error.message });
+    }
+}
+
+async function actualizarEstadoOrden(req, res) {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ mensaje: 'ID inválido.' });
+    const { estado } = req.body;
+    if (!estado) return res.status(400).json({ mensaje: 'El campo "estado" es obligatorio.' });
+    try {
+        const orden = await modelo.obtenerUnaOrden(id);
+        if (!orden) return res.status(404).json({ mensaje: 'Orden no encontrada.' });
+        const actualizada = await modelo.actualizarEstadoOrden(id, estado);
+        res.status(200).json({ mensaje: 'Estado actualizado.', orden: actualizada });
+    } catch (error) {
+        res.status(400).json({ mensaje: error.message });
+    }
+}
+
 export default {
     obtenerProductos,
     obtenerUnProducto,
     agregarUnProducto,
     modificarProducto,
     eliminarProducto,
+    subirImagen,
+    eliminarImagen,
+    obtenerSalsas,
+    obtenerUnaSalsa,
+    agregarUnaSalsa,
+    modificarSalsa,
+    eliminarSalsa,
+    descontarStock,
+
+    // Categorías
+    obtenerCategorias,
+    obtenerUnaCategoria,
+    agregarCategoria,
+    modificarCategoria,
+    eliminarCategoria,
+
+    // Órdenes
+    obtenerOrdenes,
+    obtenerUnaOrden,
+    crearOrden,
+    actualizarEstadoOrden,
+};
     subirImagen, // Exportar la nueva función
     eliminarImagen, // Exportar la nueva función
     /* exportar crud-controlador de salsas */

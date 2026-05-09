@@ -32,5 +32,18 @@ rutasApi.delete('/api/v1/salsas/:id', controlador.eliminarSalsa);
 // Rutas para descuento de stock
 rutasApi.post('/api/v1/descontar-stock', controlador.descontarStock);
 
+// ─── Rutas de Categorías ───────────────────────
+rutasApi.get('/api/v1/categorias',       controlador.obtenerCategorias);
+rutasApi.get('/api/v1/categorias/:id',   controlador.obtenerUnaCategoria);
+rutasApi.post('/api/v1/categorias',      controlador.agregarCategoria);
+rutasApi.put('/api/v1/categorias/:id',   controlador.modificarCategoria);
+rutasApi.delete('/api/v1/categorias/:id', controlador.eliminarCategoria);
+
+// ─── Rutas de Órdenes ─────────────────────────
+rutasApi.get('/api/v1/ordenes',          controlador.obtenerOrdenes);
+rutasApi.get('/api/v1/ordenes/:id',      controlador.obtenerUnaOrden);
+rutasApi.post('/api/v1/ordenes',         controlador.crearOrden);
+rutasApi.patch('/api/v1/ordenes/:id',    controlador.actualizarEstadoOrden);
+
 
 export default rutasApi;

@@ -357,16 +357,127 @@ async function descontarStock(items) {
 
 
 
+// ─── CATEGORÍAS ───────────────────────────────
+
+async function obtenerCategorias() {
+    const { data, error } = await supabaseAdmin
+        .from('categorias')
+        .select('id, nombre, slug, descripcion')
+        .order('id', { ascending: true });
+    if (error) throw error;
+    return data;
+}
+
+async function obtenerUnaCategoria(id) {
+    const { data, error } = await supabaseAdmin
+        .from('categorias')
+        .select('id, nombre, slug, descripcion')
+        .eq('id', id)
+        .single();
+    if (error) {
+        if (error.code === 'PGRST116') return null;
+        throw error;
+    }
+    return data;
+}
+
+async function agregarCategoria({ nombre, slug, descripcion }) {
+    const { data, error } = await supabaseAdmin
+        .from('categorias')
+        .insert([{ nombre, slug, descripcion: descripcion || null }])
+        .select()
+        .single();
+    if (error) throw new Error(`Error al agregar categoría: ${error.message}`);
+    return data;
+}
+
+async function modificarCategoria(id, { nombre, slug, descripcion }) {
+    const { data, error } = await supabaseAdmin
+        .from('categorias')
+        .update({ nombre, slug, descripcion: descripcion || null })
+        .eq('id', id)
+        .select()
+        .single();
+    if (error) throw new Error(`Error al modificar categoría: ${error.message}`);
+    return data !== null;
+}
+
+async function eliminarCategoria(id) {
+    const { error, count } = await supabaseAdmin
+        .from('categorias')
+        .delete()
+        .eq('id', id);
+    if (error) throw new Error(`Error al eliminar categoría: ${error.message}`);
+    return count > 0;
+}
+
+// ─── ÓRDENES ──────────────────────────────────
+
+async function obtenerOrdenes() {
+    const { data, error } = await supabaseAdmin
+        .from('ordenes')
+        .select('id, nombre_cliente, telefono, direccion, metodo_pago, notas, estado, total, items, created_at, updated_at')
+        .order('created_at', { ascending: false });
+    if (error) throw error;
+    return data;
+}
+
+async function obtenerUnaOrden(id) {
+    const { data, error } = await supabaseAdmin
+        .from('ordenes')
+        .select('id, nombre_cliente, telefono, direccion, metodo_pago, notas, estado, total, items, created_at, updated_at')
+        .eq('id', id)
+        .single();
+    if (error) {
+        if (error.code === 'PGRST116') return null;
+        throw error;
+    }
+    return data;
+}
+
+async function crearOrden({ nombre_cliente, telefono, direccion, metodo_pago, notas, total, items }) {
+    const { data, error } = await supabaseAdmin
+        .from('ordenes')
+        .insert([{
+            nombre_cliente,
+            telefono:    telefono    || null,
+            direccion:   direccion   || null,
+            metodo_pago: metodo_pago || 'efectivo',
+            notas:       notas       || null,
+            total,
+            items:       items       || [],
+            estado:      'pendiente'
+        }])
+        .select()
+        .single();
+    if (error) throw new Error(`Error al crear orden: ${error.message}`);
+    return data;
+}
+
+async function actualizarEstadoOrden(id, estado) {
+    const ESTADOS_VALIDOS = ['pendiente', 'en_proceso', 'listo', 'entregado', 'cancelado'];
+    if (!ESTADOS_VALIDOS.includes(estado)) {
+        throw new Error(`Estado inválido: "${estado}". Debe ser uno de: ${ESTADOS_VALIDOS.join(', ')}`);
+    }
+    const { data, error } = await supabaseAdmin
+        .from('ordenes')
+        .update({ estado, updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .select()
+        .single();
+    if (error) throw new Error(`Error al actualizar estado: ${error.message}`);
+    return data;
+}
+
 export default {
     obtenerProductos,
     obtenerUnProducto,
     agregarProducto,
     modificarProducto,
     eliminarProducto,
-    subirImagenStorage, // Exportar la nueva función
-    eliminarImagenStorage, // Exportar la nueva función
+    subirImagenStorage,
+    eliminarImagenStorage,
 
-    // Exportaciones de salsas
     obtenerSalsas,
     obtenerUnaSalsa,
     agregarSalsa,
@@ -374,4 +485,17 @@ export default {
     eliminarSalsa,
 
     descontarStock,
+
+    // Categorías
+    obtenerCategorias,
+    obtenerUnaCategoria,
+    agregarCategoria,
+    modificarCategoria,
+    eliminarCategoria,
+
+    // Órdenes
+    obtenerOrdenes,
+    obtenerUnaOrden,
+    crearOrden,
+    actualizarEstadoOrden,
 };
