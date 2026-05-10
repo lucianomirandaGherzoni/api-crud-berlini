@@ -1,297 +1,238 @@
-# Berlini Pastas - API Backend
+# berlini-backend — API REST
 
-API RESTful para la gestión de productos, salsas e inventario. Desarrollada con Node.js, Express y Supabase.
+API RESTful para gestión de productos, extras, órdenes e inventario. Construida con Node.js + Express 5 y desplegada en Vercel como serverless. Toda persistencia y autenticación delegada a Supabase.
 
-## Tecnologías
+---
 
-- Node.js
-- Express
-- Supabase (PostgreSQL + Storage)
-- Multer
-- dotenv
-- CORS
+## Stack
 
-## Instalación
+| | |
+|---|---|
+| Runtime | Node.js (ES Modules `.mjs`) |
+| Framework | Express 5 |
+| Base de datos | Supabase (PostgreSQL) |
+| Storage | Supabase Storage |
+| Auth | Supabase Auth (JWT verificado en el backend) |
+| Deploy | Vercel (serverless) |
+
+---
+
+## Estructura
+
+```
+berlini-backend/
+├── index.mjs               # Entry point: Express, CORS, middleware, rutas
+└── modulos/
+    ├── rutas.mjs            # Definición de todos los endpoints
+    ├── controlador.mjs      # Handlers HTTP (valida input, llama al modelo)
+    ├── modelo.mjs           # Queries a Supabase
+    └── supabaseClient.mjs   # Instancia del cliente con service_role
+```
+
+---
+
+## Setup local
 
 ```bash
 npm install
 ```
 
-Configura el archivo `.env` con tus credenciales:
+Crear `.env` en la raíz (nunca commitear):
 
 ```env
-PORT=3000
-SUPABASE_URL=tu_url_de_supabase
-SUPABASE_SERVICE_ROLE_KEY=tu_service_role_key
+SUPABASE_URL=https://xxxxxxxx.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=eyJ...
 SUPABASE_BUCKET_NAME=productos-imagenes
 ```
 
-Inicia el servidor:
-
 ```bash
-npm run dev
+npm run dev   # corre en http://localhost:3000
 ```
 
-## Estructura del Proyecto
+En Vercel las mismas variables se agregan en **Settings > Environment Variables**.
+
+---
+
+## Autenticación
+
+Los endpoints de **lectura** y **creación de órdenes** son **públicos** (sin auth).  
+Los endpoints de **escritura del admin** requieren el JWT de Supabase en el header:
 
 ```
-berlini-backend/
-├── modulos/
-│   ├── controlador.mjs
-│   ├── modelo.mjs
-│   ├── rutas.mjs
-│   └── supabaseClient.mjs
-├── index.mjs
-└── package.json
+Authorization: Bearer <token>
 ```
 
-## API Endpoints
+El token lo genera Supabase Auth al hacer login desde el frontend. El middleware `requireAuth` lo verifica antes de ejecutar el handler.
+
+---
+
+## Endpoints
 
 ### Productos
 
-#### Obtener todos los productos
-```http
-GET /api/v1/productos
-```
+| Método | Ruta | Auth | Descripción |
+|---|---|---|---|
+| `GET` | `/api/v1/productos` | — | Listar todos |
+| `GET` | `/api/v1/productos/:id` | — | Obtener uno |
+| `POST` | `/api/v1/productos` | ✅ JWT | Crear |
+| `PUT` | `/api/v1/productos/:id` | ✅ JWT | Modificar |
+| `DELETE` | `/api/v1/productos/:id` | ✅ JWT | Eliminar |
 
-**Respuesta exitosa (200):**
-```json
-[
-  {
-    "id": 1,
-    "nombre": "Ravioles",
-    "detalle": "Ravioles caseros de ricota y espinaca",
-    "precio": 1500,
-    "stock": 50,
-    "imagen_url": "https://...",
-    "categoria": "Pastas"
-  }
-]
-```
-
-#### Obtener un producto por ID
-```http
-GET /api/v1/productos/:id
-```
-
-**Parámetros:**
-- `id` (number) - ID del producto
-
-**Respuesta exitosa (200):**
+**Body POST / PUT:**
 ```json
 {
-  "id": 1,
-  "nombre": "Ravioles",
-  "detalle": "Ravioles caseros de ricota y espinaca",
+  "nombre": "Ravioles de ricota",
+  "detalle": "Hechos a mano",
   "precio": 1500,
-  "stock": 50,
+  "stock": 40,
   "imagen_url": "https://...",
   "categoria": "Pastas"
-}
-```
-
-#### Crear un producto
-```http
-POST /api/v1/productos
-```
-
-**Body (JSON):**
-```json
-{
-  "nombre": "Ñoquis",
-  "detalle": "Ñoquis de papa",
-  "precio": 1200,
-  "stock": 30,
-  "imagen_url": "https://...",
-  "categoria": "Pastas"
-}
-```
-
-**Respuesta exitosa (201):**
-```json
-{
-  "mensaje": "Producto agregado con éxito",
-  "producto": { ... }
-}
-```
-
-#### Modificar un producto
-```http
-PUT /api/v1/productos/:id
-```
-
-**Parámetros:**
-- `id` (number) - ID del producto
-
-**Body (JSON):**
-```json
-{
-  "nombre": "Ñoquis",
-  "detalle": "Ñoquis de papa caseros",
-  "precio": 1300,
-  "stock": 25,
-  "imagen_url": "https://...",
-  "categoria": "Pastas"
-}
-```
-
-**Respuesta exitosa (200):**
-```json
-{
-  "mensaje": "Producto con ID 1 modificado con éxito."
-}
-```
-
-#### Eliminar un producto
-```http
-DELETE /api/v1/productos/:id
-```
-
-**Parámetros:**
-- `id` (number) - ID del producto
-
-**Respuesta exitosa (200):**
-```json
-{
-  "mensaje": "Producto con ID 1 eliminado con éxito."
-}
-```
-
-### Salsas
-
-#### Obtener todas las salsas
-```http
-GET /api/v1/salsas
-```
-
-**Respuesta exitosa (200):**
-```json
-[
-  {
-    "id": 1,
-    "salsa_nombre": "Bolognesa",
-    "salsa_precio": 500,
-    "salsa_stock": 100
-  }
-]
-```
-
-#### Obtener una salsa por ID
-```http
-GET /api/v1/salsas/:id
-```
-
-#### Crear una salsa
-```http
-POST /api/v1/salsas
-```
-
-**Body (JSON):**
-```json
-{
-  "salsa_nombre": "Pesto",
-  "salsa_precio": 600,
-  "salsa_stock": 50
-}
-```
-
-#### Modificar una salsa
-```http
-PUT /api/v1/salsas/:id
-```
-
-#### Eliminar una salsa
-```http
-DELETE /api/v1/salsas/:id
-```
-
-### Gestión de Imágenes
-
-#### Subir una imagen
-```http
-POST /api/v1/productos/upload-image
-```
-
-**Content-Type:** `multipart/form-data`
-
-**Form Data:**
-- `image` (file) - Archivo de imagen
-
-**Respuesta exitosa (200):**
-```json
-{
-  "mensaje": "Imagen subida con éxito",
-  "imageUrl": "https://...supabase.co/storage/v1/object/public/..."
-}
-```
-
-#### Eliminar una imagen
-```http
-DELETE /api/v1/productos/delete-image
-```
-
-**Body (JSON):**
-```json
-{
-  "imageUrl": "https://...supabase.co/storage/v1/object/public/..."
 }
 ```
 
 ---
 
-#### Descontar stock de múltiples ítems
-```http
-POST /api/v1/descontar-stock
+### Extras
+
+| Método | Ruta | Auth | Descripción |
+|---|---|---|---|
+| `GET` | `/api/v1/extras` | — | Listar todos |
+| `GET` | `/api/v1/extras/:id` | — | Obtener uno |
+| `POST` | `/api/v1/extras` | ✅ JWT | Crear |
+| `PUT` | `/api/v1/extras/:id` | ✅ JWT | Modificar |
+| `DELETE` | `/api/v1/extras/:id` | ✅ JWT | Eliminar |
+
+**Body POST / PUT:**
+```json
+{
+  "nombre": "Bolognesa",
+  "precio": 500,
+  "stock": 80
+}
 ```
 
-**Body (JSON):**
+---
+
+### Categorías
+
+| Método | Ruta | Auth | Descripción |
+|---|---|---|---|
+| `GET` | `/api/v1/categorias` | — | Listar todas |
+
+---
+
+### Órdenes
+
+| Método | Ruta | Auth | Descripción |
+|---|---|---|---|
+| `GET` | `/api/v1/ordenes` | ✅ JWT | Listar todas |
+| `GET` | `/api/v1/ordenes/:id` | ✅ JWT | Obtener una |
+| `POST` | `/api/v1/ordenes` | — | Crear (checkout público) |
+| `PUT` | `/api/v1/ordenes/:id` | ✅ JWT | Cambiar estado |
+| `DELETE` | `/api/v1/ordenes/:id` | ✅ JWT | Eliminar |
+
+**Body POST (checkout):**
+```json
+{
+  "nombre_cliente": "Juan Pérez",
+  "telefono": "3511234567",
+  "direccion": "Av. Colón 1234",
+  "notas": "Sin sal",
+  "metodo_pago": "efectivo",
+  "metodo_entrega": "domicilio",
+  "items": [
+    { "id": 1, "nombre": "Ravioles", "precio": 1500, "cantidad": 2, "tipo": "producto" },
+    { "id": 2, "nombre": "Bolognesa", "precio": 500,  "cantidad": 1, "tipo": "extra"   }
+  ],
+  "total": 3500
+}
+```
+
+**Body PUT (cambio de estado):**
+```json
+{ "estado": "en_proceso" }
+```
+
+Estados válidos: `pendiente` | `en_proceso` | `listo` | `entregado` | `cancelado`
+
+---
+
+### Stock
+
+| Método | Ruta | Auth | Descripción |
+|---|---|---|---|
+| `POST` | `/api/v1/descontar-stock` | — | Descuenta stock de varios ítems |
+
+**Body:**
 ```json
 [
-  {
-    "id": 1,
-    "type": "producto",
-    "quantity": 2
-  },
-  {
-    "id": 3,
-    "type": "salsa",
-    "quantity": 1
-  }
+  { "id": 1, "type": "producto", "quantity": 2 },
+  { "id": 3, "type": "extra",    "quantity": 1 }
 ]
 ```
 
-**Respuesta exitosa (200):**
+Descuenta en `productos` o `extras` según el campo `type`. Si el stock es insuficiente retorna 500 con el detalle del ítem.
+
+---
+
+### Imágenes (Supabase Storage)
+
+| Método | Ruta | Auth | Descripción |
+|---|---|---|---|
+| `POST` | `/api/v1/productos/upload-image` | ✅ JWT | Sube imagen al bucket |
+| `DELETE` | `/api/v1/productos/delete-image` | ✅ JWT | Elimina imagen del bucket |
+
+**Upload — `multipart/form-data`**, campo `image` (archivo).
+
+**Respuesta upload (200):**
 ```json
-{
-  "mensaje": "Stock descontado con éxito."
-}
+{ "mensaje": "Imagen subida con éxito", "imageUrl": "https://...supabase.co/storage/..." }
 ```
 
-**Respuesta de error (500):**
+**Delete — body JSON:**
 ```json
-{
-  "mensaje": "Error al procesar el pedido. Stock insuficiente para producto con ID 1. Stock actual: 1, Cantidad solicitada: 2"
-}
+{ "imageUrl": "https://...supabase.co/storage/..." }
 ```
 
-## 🔐 Seguridad
+---
 
-- LBase de Datos
+## Códigos de respuesta
 
-**Tabla productos:**
-- id, nombre, detalle, precio, stock, imagen_url, categoria
+| Código | Significado |
+|---|---|
+| 200 | OK |
+| 201 | Recurso creado |
+| 400 | Datos inválidos o faltantes |
+| 401 | JWT ausente o inválido |
+| 404 | Recurso no encontrado |
+| 500 | Error interno / stock insuficiente |
 
-**Tabla salsas:**
-- id, salsa_nombre, salsa_precio, salsa_stock
+---
 
-## Despliegue
+## CORS
 
-Configurado para Vercel. Asegúrate de configurar las variables de entorno en el panel de Vercel.
+Los orígenes permitidos están en `ALLOWED_ORIGINS` dentro de `index.mjs`.  
+Al adaptar a otro dominio, agregar el nuevo origen ahí antes de hacer deploy.
 
-## Códigos de Estado
+---
 
-- 200 - OK
-- 201 - Created
-- 400 - Bad Request
-- 404 - Not Found
-- 500 - Internal Server Error
+## Deploy en Vercel
+
+El archivo `vercel.json` ya está configurado. Solo hay que:
+
+1. Conectar el repo en [vercel.com](https://vercel.com)
+2. Agregar las 3 variables en **Settings > Environment Variables**
+3. Hacer push — Vercel despliega automáticamente
+
+URL base de producción: `https://tu-proyecto.vercel.app/api/v1/`
+
+---
+
+## Errores frecuentes
+
+| Error | Causa | Fix |
+|---|---|---|
+| CORS bloqueado | Dominio no está en `ALLOWED_ORIGINS` | Agregar el origen exacto en `index.mjs` |
+| 401 Unauthorized | JWT expirado o header mal formado | Volver a hacer login en el frontend |
+| 413 al subir imagen | Archivo > 5 MB | Comprimir antes de subir |
+| Variables no definidas | `.env` no existe o Vercel sin vars | Crear `.env` / configurar en Vercel |
