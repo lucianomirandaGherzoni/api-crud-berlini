@@ -184,111 +184,76 @@ async function eliminarImagenStorage(imageUrl) {
     }
 }
 
-// --- Nuevas funciones para Salsas ---
+// --- Funciones para Extras ---
 
-// Función para obtener todas las salsas
-async function obtenerSalsas() {
+async function obtenerExtras() {
     try {
-        const { data: salsas, error } = await supabaseAdmin
-            .from('salsas') // Usar la tabla 'salsas'
-            .select('id, salsa_nombre, salsa_precio, salsa_stock') // Campos de la tabla 'salsas'
-            .order('id', { ascending: true });
-
-        if (error) {
-            throw error;
-        }
-        return salsas;
-    } catch (error) {
-        throw error;
-    }
-}
-
-// Función para obtener una salsa por ID
-async function obtenerUnaSalsa(id) {
-    try {
-        const { data: salsa, error } = await supabaseAdmin
-            .from('salsas') // Usar la tabla 'salsas'
-            .select('id, salsa_nombre, salsa_precio, salsa_stock') // Campos de la tabla 'salsas'
-            .eq('id', id)
-            .single();
-
-        if (error) {
-            if (error.code === 'PGRST116') {
-                return null;
-            }
-            throw error;
-        }
-        return salsa;
-    } catch (error) {
-        throw error;
-    }
-}
-
-// Función para agregar una salsa
-async function agregarSalsa(nuevaSalsa) {
-    try {
-        const { salsa_nombre, salsa_precio, salsa_stock } = nuevaSalsa; // Campos de la tabla 'salsas'
-
         const { data, error } = await supabaseAdmin
-            .from('salsas') // Usar la tabla 'salsas'
-            .insert([
-                {
-                    salsa_nombre: salsa_nombre,
-                    salsa_precio: salsa_precio,
-                    salsa_stock: salsa_stock
-                }
-            ])
-            .select()
-            .single();
-
-        if (error) {
-            throw new Error(`Error al agregar salsa: ${error.message}`);
-        }
-
+            .from('extras')
+            .select('id, nombre, precio, stock')
+            .order('id', { ascending: true });
+        if (error) throw error;
         return data;
     } catch (error) {
         throw error;
     }
 }
 
-// Función para modificar una salsa
-async function modificarSalsa(id, salsaModificar) {
+async function obtenerUnExtra(id) {
     try {
-        const { salsa_nombre, salsa_precio, salsa_stock } = salsaModificar; // Campos de la tabla 'salsas'
-
         const { data, error } = await supabaseAdmin
-            .from('salsas') // Usar la tabla 'salsas'
-            .update({
-                salsa_nombre: salsa_nombre,
-                salsa_precio: salsa_precio,
-                salsa_stock: salsa_stock
-            })
+            .from('extras')
+            .select('id, nombre, precio, stock')
+            .eq('id', id)
+            .single();
+        if (error) {
+            if (error.code === 'PGRST116') return null;
+            throw error;
+        }
+        return data;
+    } catch (error) {
+        throw error;
+    }
+}
+
+async function agregarExtra(nuevoExtra) {
+    try {
+        const { nombre, precio, stock } = nuevoExtra;
+        const { data, error } = await supabaseAdmin
+            .from('extras')
+            .insert([{ nombre, precio, stock }])
+            .select()
+            .single();
+        if (error) throw new Error(`Error al agregar extra: ${error.message}`);
+        return data;
+    } catch (error) {
+        throw error;
+    }
+}
+
+async function modificarExtra(id, extraModificar) {
+    try {
+        const { nombre, precio, stock } = extraModificar;
+        const { data, error } = await supabaseAdmin
+            .from('extras')
+            .update({ nombre, precio, stock })
             .eq('id', id)
             .select()
             .single();
-
-        if (error) {
-            throw new Error(`Error al modificar salsa: ${error.message}`);
-        }
-
+        if (error) throw new Error(`Error al modificar extra: ${error.message}`);
         return data !== null;
     } catch (error) {
         throw error;
     }
 }
 
-// Función para eliminar una salsa
-async function eliminarSalsa(id) {
+async function eliminarExtra(id) {
     try {
         const { error, count } = await supabaseAdmin
-            .from('salsas') // Usar la tabla 'salsas'
+            .from('extras')
             .delete()
             .eq('id', id);
-
-        if (error) {
-            throw new Error(`Error al eliminar salsa: ${error.message}`);
-        }
-
+        if (error) throw new Error(`Error al eliminar extra: ${error.message}`);
         return count > 0;
     } catch (error) {
         throw error;
@@ -304,8 +269,8 @@ async function descontarStock(items) {
             const { id, type, quantity } = item;
 
             // Determina la tabla y el campo de stock según el tipo
-            const tableName = type === 'producto' ? 'productos' : 'salsas';
-            const stockColumnName = type === 'producto' ? 'stock' : 'salsa_stock';
+            const tableName = type === 'producto' ? 'productos' : 'extras';
+            const stockColumnName = 'stock';
 
             // Primero, obtén el stock actual para asegurarte de que hay suficiente
             const { data, error: fetchError } = await supabaseAdmin
@@ -470,6 +435,25 @@ async function actualizarEstadoOrden(id, estado) {
     return data;
 }
 
+async function obtenerConfig() {
+    const { data, error } = await supabaseAdmin
+        .from('configuracion')
+        .select('clave, valor');
+    if (error) throw new Error(`Error al obtener config: ${error.message}`);
+    // Devuelve objeto { clave: valor }
+    return Object.fromEntries((data || []).map(r => [r.clave, r.valor]));
+}
+
+async function actualizarConfig(clave, valor) {
+    const { data, error } = await supabaseAdmin
+        .from('configuracion')
+        .upsert({ clave, valor }, { onConflict: 'clave' })
+        .select()
+        .single();
+    if (error) throw new Error(`Error al actualizar config: ${error.message}`);
+    return data;
+}
+
 export default {
     obtenerProductos,
     obtenerUnProducto,
@@ -479,11 +463,11 @@ export default {
     subirImagenStorage,
     eliminarImagenStorage,
 
-    obtenerSalsas,
-    obtenerUnaSalsa,
-    agregarSalsa,
-    modificarSalsa,
-    eliminarSalsa,
+    obtenerExtras,
+    obtenerUnExtra,
+    agregarExtra,
+    modificarExtra,
+    eliminarExtra,
 
     descontarStock,
 
@@ -499,4 +483,8 @@ export default {
     obtenerUnaOrden,
     crearOrden,
     actualizarEstadoOrden,
+
+    // Config
+    obtenerConfig,
+    actualizarConfig,
 };

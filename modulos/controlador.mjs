@@ -164,111 +164,94 @@ async function eliminarImagen(req, res) {
     }
 }
 
-// funciones del controlador para el manejo de salsas 
-// Función para obtener todas las salsas
-async function obtenerSalsas(req, res) {
+// Funciones del controlador para el manejo de extras
+async function obtenerExtras(req, res) {
     try {
-        const salsas = await modelo.obtenerSalsas();
-        if (salsas.length === 0) {
-            return res.status(200).json({ mensaje: "No hay salsas en la base de datos." });
+        const extras = await modelo.obtenerExtras();
+        if (extras.length === 0) {
+            return res.status(200).json({ mensaje: "No hay extras en la base de datos." });
         }
-        res.status(200).json(salsas);
+        res.status(200).json(extras);
     } catch (error) {
-        res.status(500).json({ mensaje: "Error interno del servidor al obtener salsas.", detalle: error.message });
+        res.status(500).json({ mensaje: "Error interno del servidor al obtener extras.", detalle: error.message });
     }
 }
 
-// Función que retorna una salsa por ID
-async function obtenerUnaSalsa(req, res) {
-    const salsaId = parseInt(req.params.id);
-
-    if (isNaN(salsaId)) {
-        return res.status(400).json({ mensaje: 'ID de salsa inválido. Debe ser un número.' });
+async function obtenerUnExtra(req, res) {
+    const extraId = parseInt(req.params.id);
+    if (isNaN(extraId)) {
+        return res.status(400).json({ mensaje: 'ID de extra inválido. Debe ser un número.' });
     }
-
     try {
-        const salsa = await modelo.obtenerUnaSalsa(salsaId);
-        if (salsa) {
-            res.status(200).json(salsa);
+        const extra = await modelo.obtenerUnExtra(extraId);
+        if (extra) {
+            res.status(200).json(extra);
         } else {
-            res.status(404).json({ mensaje: 'Salsa no encontrada.' });
+            res.status(404).json({ mensaje: 'Extra no encontrado.' });
         }
     } catch (error) {
-        res.status(500).json({ mensaje: 'Error interno del servidor al obtener la salsa.', detalle: error.message });
+        res.status(500).json({ mensaje: 'Error interno del servidor al obtener el extra.', detalle: error.message });
     }
 }
 
-// Función para agregar una nueva salsa
-async function agregarUnaSalsa(req, res) {
+async function agregarUnExtra(req, res) {
     try {
-        const nuevaSalsa = req.body;
-        // Validación de datos de entrada según los campos de tu tabla "salsas"
-        if (!nuevaSalsa.salsa_nombre || typeof nuevaSalsa.salsa_precio === 'undefined' || typeof nuevaSalsa.salsa_stock === 'undefined') {
-            return res.status(400).json({ mensaje: "Faltan datos obligatorios para la salsa (salsa_nombre, salsa_precio, salsa_stock)." });
+        const nuevoExtra = req.body;
+        if (!nuevoExtra.nombre || typeof nuevoExtra.precio === 'undefined' || typeof nuevoExtra.stock === 'undefined') {
+            return res.status(400).json({ mensaje: "Faltan datos obligatorios para el extra (nombre, precio, stock)." });
         }
-        if (isNaN(nuevaSalsa.salsa_precio) || isNaN(nuevaSalsa.salsa_stock)) {
-            return res.status(400).json({ mensaje: "Precio y stock de salsa deben ser valores numéricos." });
+        if (isNaN(nuevoExtra.precio) || isNaN(nuevoExtra.stock)) {
+            return res.status(400).json({ mensaje: "Precio y stock deben ser valores numéricos." });
         }
-
-        const salsaCreada = await modelo.agregarSalsa(nuevaSalsa);
-        res.status(201).json({ mensaje: "Salsa agregada con éxito", salsa: salsaCreada });
+        const extraCreado = await modelo.agregarExtra(nuevoExtra);
+        res.status(201).json({ mensaje: "Extra agregado con éxito", extra: extraCreado });
     } catch (error) {
-        res.status(500).json({ mensaje: 'Error interno del servidor al agregar la salsa.', detalle: error.message });
+        res.status(500).json({ mensaje: 'Error interno del servidor al agregar el extra.', detalle: error.message });
     }
 }
 
-// Función para modificar una salsa
-async function modificarSalsa(req, res) {
+async function modificarExtra(req, res) {
     try {
-        const salsaId = parseInt(req.params.id);
-        const salsaModificada = req.body;
-
-        if (isNaN(salsaId)) {
-            return res.status(400).json({ mensaje: 'ID de salsa inválido. Debe ser un número.' });
+        const extraId = parseInt(req.params.id);
+        const extraModificado = req.body;
+        if (isNaN(extraId)) {
+            return res.status(400).json({ mensaje: 'ID de extra inválido. Debe ser un número.' });
         }
-
-        // Validación de datos de entrada para la modificación
-        if (!salsaModificada.salsa_nombre || typeof salsaModificada.salsa_precio === 'undefined' || typeof salsaModificada.salsa_stock === 'undefined') {
-            return res.status(400).json({ mensaje: "Faltan datos obligatorios para modificar la salsa (salsa_nombre, salsa_precio, salsa_stock)." });
+        if (!extraModificado.nombre || typeof extraModificado.precio === 'undefined' || typeof extraModificado.stock === 'undefined') {
+            return res.status(400).json({ mensaje: "Faltan datos obligatorios para modificar el extra (nombre, precio, stock)." });
         }
-        if (isNaN(salsaModificada.salsa_precio) || isNaN(salsaModificada.salsa_stock)) {
-            return res.status(400).json({ mensaje: "Precio y stock de salsa deben ser valores numéricos." });
+        if (isNaN(extraModificado.precio) || isNaN(extraModificado.stock)) {
+            return res.status(400).json({ mensaje: "Precio y stock deben ser valores numéricos." });
         }
-
-        const salsaExistente = await modelo.obtenerUnaSalsa(salsaId);
-        if (!salsaExistente) {
-            return res.status(404).json({ mensaje: "Salsa a modificar no encontrada." });
+        const extraExistente = await modelo.obtenerUnExtra(extraId);
+        if (!extraExistente) {
+            return res.status(404).json({ mensaje: "Extra a modificar no encontrado." });
         }
-
-        const modificado = await modelo.modificarSalsa(salsaId, salsaModificada);
+        const modificado = await modelo.modificarExtra(extraId, extraModificado);
         if (modificado) {
-            res.status(200).json({ mensaje: `Salsa con ID ${salsaId} modificada con éxito.` });
+            res.status(200).json({ mensaje: `Extra con ID ${extraId} modificado con éxito.` });
         } else {
-            res.status(500).json({ mensaje: 'No se pudo modificar la salsa por una razón desconocida.' });
+            res.status(500).json({ mensaje: 'No se pudo modificar el extra por una razón desconocida.' });
         }
-
     } catch (error) {
-        res.status(500).json({ mensaje: 'Error interno del servidor al modificar la salsa.', detalle: error.message });
+        res.status(500).json({ mensaje: 'Error interno del servidor al modificar el extra.', detalle: error.message });
     }
 }
 
-// Función para eliminar una salsa
-async function eliminarSalsa(req, res) {
-    const salsaId = parseInt(req.params.id);
-
-    if (isNaN(salsaId)) {
-        return res.status(400).json({ mensaje: 'ID de salsa inválido. Debe ser un número.' });
+async function eliminarExtra(req, res) {
+    const extraId = parseInt(req.params.id);
+    if (isNaN(extraId)) {
+        return res.status(400).json({ mensaje: 'ID de extra inválido. Debe ser un número.' });
     }
-
     try {
-        const eliminado = await modelo.eliminarSalsa(salsaId);
+        const eliminado = await modelo.eliminarExtra(extraId);
         if (eliminado) {
-            res.status(200).json({ mensaje: `Salsa con ID ${salsaId} eliminada con éxito.` });
+            res.status(200).json({ mensaje: `Extra con ID ${extraId} eliminado con éxito.` });
         } else {
-            res.status(404).json({ mensaje: 'Salsa no encontrada para eliminar.' });
+            res.status(404).json({ mensaje: 'Extra no encontrado para eliminar.' });
         }
     } catch (error) {
-        res.status(500).json({ mensaje: 'Error interno del servidor al eliminar la salsa.', detalle: error.message });
+        res.status(500).json({ mensaje: 'Error interno del servidor al eliminar el extra.', detalle: error.message });
     }
 }
 
@@ -440,6 +423,28 @@ async function invitarAdmin(req, res) {
     }
 }
 
+async function obtenerConfig(req, res) {
+    try {
+        const config = await modelo.obtenerConfig();
+        res.status(200).json(config);
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al obtener configuración.', detalle: error.message });
+    }
+}
+
+async function actualizarConfig(req, res) {
+    const { clave, valor } = req.body;
+    if (!clave || valor === undefined) {
+        return res.status(400).json({ mensaje: 'Faltan clave y/o valor.' });
+    }
+    try {
+        const resultado = await modelo.actualizarConfig(clave, String(valor));
+        res.status(200).json(resultado);
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al actualizar configuración.', detalle: error.message });
+    }
+}
+
 export default {
     obtenerProductos,
     obtenerUnProducto,
@@ -448,11 +453,11 @@ export default {
     eliminarProducto,
     subirImagen,
     eliminarImagen,
-    obtenerSalsas,
-    obtenerUnaSalsa,
-    agregarUnaSalsa,
-    modificarSalsa,
-    eliminarSalsa,
+    obtenerExtras,
+    obtenerUnExtra,
+    agregarUnExtra,
+    modificarExtra,
+    eliminarExtra,
     descontarStock,
 
     // Categorías
@@ -470,4 +475,8 @@ export default {
 
     // Admin
     invitarAdmin,
+
+    // Config
+    obtenerConfig,
+    actualizarConfig,
 };

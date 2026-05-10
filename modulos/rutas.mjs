@@ -18,12 +18,12 @@ rutasApi.delete('/api/v1/productos/:id',       requireAuth, controlador.eliminar
 rutasApi.post('/api/v1/productos/upload-image', requireAuth, upload.single('image'), controlador.subirImagen);
 rutasApi.delete('/api/v1/productos/delete-image', requireAuth, controlador.eliminarImagen);
 
-// ─── Salsas ───────────────────────────────────────────────────────────────
-rutasApi.get('/api/v1/salsas',                 controlador.obtenerSalsas);
-rutasApi.get('/api/v1/salsas/:id',             controlador.obtenerUnaSalsa);
-rutasApi.post('/api/v1/salsas',                requireAuth, controlador.agregarUnaSalsa);
-rutasApi.put('/api/v1/salsas/:id',             requireAuth, controlador.modificarSalsa);
-rutasApi.delete('/api/v1/salsas/:id',          requireAuth, controlador.eliminarSalsa);
+// ─── Extras ───────────────────────────────────────────────────────────
+rutasApi.get('/api/v1/extras',                 controlador.obtenerExtras);
+rutasApi.get('/api/v1/extras/:id',             controlador.obtenerUnExtra);
+rutasApi.post('/api/v1/extras',                requireAuth, controlador.agregarUnExtra);
+rutasApi.put('/api/v1/extras/:id',             requireAuth, controlador.modificarExtra);
+rutasApi.delete('/api/v1/extras/:id',          requireAuth, controlador.eliminarExtra);
 
 // ─── Descuento de stock (público, llamado desde el checkout del cliente) ──
 rutasApi.post('/api/v1/descontar-stock',       controlador.descontarStock);
@@ -43,5 +43,9 @@ rutasApi.patch('/api/v1/ordenes/:id',          requireAuth, controlador.actualiz
 
 // ─── Admin ────────────────────────────────────────────────────────────────
 rutasApi.post('/api/v1/admin/invitar',         requireAuth, controlador.invitarAdmin);
+
+// ─── Configuración (lectura pública, escritura protegida) ─────────────────
+rutasApi.get('/api/v1/config',                 controlador.obtenerConfig);
+rutasApi.put('/api/v1/config',                 requireAuth, controlador.actualizarConfig);
 
 export default rutasApi;
