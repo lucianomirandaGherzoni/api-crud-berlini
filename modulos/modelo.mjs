@@ -368,6 +368,23 @@ async function modificarCategoria(id, { nombre, slug, descripcion }) {
 }
 
 async function eliminarCategoria(id) {
+    // Obtener el slug de la categoría para limpiar los productos
+    const { data: cat, error: catError } = await supabaseAdmin
+        .from('categorias')
+        .select('slug')
+        .eq('id', id)
+        .single();
+    if (catError && catError.code !== 'PGRST116') throw new Error(`Error al obtener categoría: ${catError.message}`);
+
+    // Si la categoría existe, quitar la referencia de todos los productos que la usan
+    if (cat?.slug) {
+        const { error: updateError } = await supabaseAdmin
+            .from('productos')
+            .update({ categoria: null })
+            .eq('categoria', cat.slug);
+        if (updateError) throw new Error(`Error al limpiar categoría en productos: ${updateError.message}`);
+    }
+
     const { error, count } = await supabaseAdmin
         .from('categorias')
         .delete()
